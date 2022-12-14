@@ -1,0 +1,4 @@
+traefik.port=8000
+traefik.http.routers.imagegen.rule=Host(`imagegen.dev.might.works}`)
+traefik.http.routers.imagegen.tls=true
+traefik.http.routers.imagegen.tls.certresolver=lets-encrypt
