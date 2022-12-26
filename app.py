@@ -22,7 +22,13 @@ import skimage
 import skimage.measure
 from PyPatchMatch import patch_match
 from getScheduler import getScheduler, SCHEDULERS
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import re
+
+# Setup NIMO Enhance
+nimo_tokenizer = AutoTokenizer.from_pretrained("Gustavosta/MagicPrompt-Stable-Diffusion")
+nimo_model = AutoModelForCausalLM.from_pretrained("Gustavosta/MagicPrompt-Stable-Diffusion")
+enhance_pl = pipeline("text-generation", model=nimo_model, tokenizer=nimo_tokenizer)
 
 USE_DREAMBOOTH = os.getenv("USE_DREAMBOOTH") == "1"
 if USE_DREAMBOOTH:
@@ -41,6 +47,10 @@ PIPELINES = [
 
 torch.set_grad_enabled(False)
 
+def enhancePrompt(prefix_prompt):
+    generated_text = enhance_pl(prefix_prompt, max_length=50, do_sample=False)[0]
+    print(f'Enhanced Prompt: {generated_text}')
+    return generated_text['generated_text']
 
 def createPipelinesFromModel(model):
     pipelines = dict()
@@ -225,7 +235,12 @@ def inference(all_inputs: dict) -> dict:
             )
         )
 
+    if "enhance" in model_inputs and model_inputs.get("enhance") == True:
+        model_inputs["prompt"] = enhancePrompt(model_inputs["prompt"])
+
+    print(f'Final Prompt: {model_inputs["prompt"]}')
     inferenceStart = get_now()
+
     send("inference", "start", {"startRequestId": startRequestId}, True)
 
     # Run patchmatch for inpainting
