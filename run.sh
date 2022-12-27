@@ -1,1 +1,1 @@
-docker run -it --gpus all -p 8000:8000 banana-sd
+docker run --gpus all -d -p 8000:8000 banana-sd

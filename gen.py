@@ -17,17 +17,18 @@ def decodeBase64Image(imageStr: str, name: str) -> Image:
 config = {
   "modelInputs": {
     "prompt": "me",
-    "num_inference_steps": 50,
+    "num_inference_steps": 20,
     "guidance_scale": 7.5,
     "width": 512,
     "height": 512,
-    "seed": 3239022079
+    "seed": 3239022079,
   },
   "callInputs": {
-    "MODEL_ID": "stabilityai/stable-diffusion-2",
-    "PIPELINE": "StableDiffusionPipeline",
-    "SCHEDULER": "LMSDiscreteScheduler",
+    "MODEL_ID": "runwayml/stable-diffusion-v1-5",
+    #"PIPELINE": "StableDiffusionPipeline",
+    "PIPELINE": "lpw_stable_diffusion",
     "safety_checker": "false",
+    "custom_pipeline_method": "text2img",
   },
 }
 
@@ -37,4 +38,4 @@ res = json.loads(res.text)
 
 image = decodeBase64Image(res['image_base64'], 'whocares')
 
-#image.save('test.png')
+image.save('test.png')
