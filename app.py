@@ -50,6 +50,7 @@ def enhancePrompt(prefix_prompt):
 
     try:
         generated_text = enhance_pl(prompt, max_length=(len(prompt) + random.randint(60, 90)))[0]
+        print(generated_text)
     except Exception as e:
         print(f'Exception in enhance: {e}')
         return prefix_prompt
