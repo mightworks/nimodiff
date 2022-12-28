@@ -20,13 +20,15 @@ import re
 import requests
 from download import download_model
 import traceback
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, set_seed
+import random
 
 # Setup NIMO Enhance
-nimo_tokenizer = AutoTokenizer.from_pretrained("daspartho/prompt-extend")
-nimo_model = AutoModelForCausalLM.from_pretrained("daspartho/prompt-extend")
-
+nimo_tokenizer = AutoTokenizer.from_pretrained("Gustavosta/MagicPrompt-Stable-Diffusion")
+nimo_model = AutoModelForCausalLM.from_pretrained("Gustavosta/MagicPrompt-Stable-Diffusion")
 enhance_pl = pipeline("text-generation", model=nimo_model, tokenizer=nimo_tokenizer)
+nimo_seed = random.randint(100, 1000000)
+set_seed(nimo_seed)
 
 RUNTIME_DOWNLOADS = os.getenv("RUNTIME_DOWNLOADS") == "1"
 USE_DREAMBOOTH = os.getenv("USE_DREAMBOOTH") == "1"
@@ -40,7 +42,13 @@ HF_AUTH_TOKEN = os.getenv("HF_AUTH_TOKEN")
 torch.set_grad_enabled(False)
 
 def enhancePrompt(prefix_prompt):
-    generated_text = enhance_pl(prefix_prompt, max_length=50, do_sample=False)[0]
+    prompt = prefix_prompt.replace("\n", "").lower().capitalize()
+    prompt = re.sub(r':\d+\.\d+', '', prompt)
+    prompt = re.sub(r"[,:\-–.!;?_()]", '', prompt)
+    print(f"ORIGINAL: {prefix_prompt}")
+    print(f"CLEAN: {prompt}")
+    generated_text = enhance_pl(prompt, max_length=(len(prompt) + random.randint(60, 90)))[0].strip()
+    
     print(f'Enhanced Prompt: {generated_text}')
     return generated_text['generated_text']
 
@@ -77,19 +85,16 @@ def init():
 
     send("init", "done")
 
-
 def decodeBase64Image(imageStr: str, name: str) -> PIL.Image:
     image = PIL.Image.open(BytesIO(base64.decodebytes(bytes(imageStr, "utf-8"))))
     print(f'Decoded image "{name}": {image.format} {image.width}x{image.height}')
     return image
-
 
 def getFromUrl(url: str, name: str) -> PIL.Image:
     response = requests.get(url)
     image = PIL.Image.open(BytesIO(response.content))
     print(f'Decoded image "{name}": {image.format} {image.width}x{image.height}')
     return image
-
 
 def truncateInputs(inputs: dict):
     clone = inputs.copy()
