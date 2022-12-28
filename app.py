@@ -44,7 +44,7 @@ torch.set_grad_enabled(False)
 def enhancePrompt(prefix_prompt):
     prompt = prefix_prompt.replace("\n", "").lower().capitalize()
     prompt = re.sub(r':\d+\.\d+', '', prompt)
-    prompt = re.sub(r"[,:\-–.!;?_()]", '', prompt)
+    prompt = re.sub(r"[:\-–.!;?_()]", '', prompt)
     print(f"ORIGINAL: {prefix_prompt}")
     print(f"CLEAN: {prompt}")
 
@@ -55,8 +55,14 @@ def enhancePrompt(prefix_prompt):
         print(f'Exception in enhance: {e}')
         return prefix_prompt
     
-    print(f'Enhanced Prompt: {generated_text}')
-    return generated_text['generated_text']
+    # Now re-append original prompt including weights
+    snippet = generated_text['generated_text']
+    print(f'SNIPPET: {snippet}')
+    final_prompt = prefix_prompt + ' ' + snippet[len(prompt):]
+    print(f'Enhanced Prompt: {final_prompt}')
+    return final_prompt
+
+    ### Only send new text so can append to original prompt
 
 class DummySafetyChecker:
     @staticmethod
