@@ -47,7 +47,7 @@ def enhancePrompt(prefix_prompt):
     prompt = re.sub(r"[,:\-–.!;?_()]", '', prompt)
     print(f"ORIGINAL: {prefix_prompt}")
     print(f"CLEAN: {prompt}")
-    generated_text = enhance_pl(prompt, max_length=(len(prompt) + random.randint(60, 90)))[0].strip()
+    generated_text = enhance_pl(prompt, max_length=80)[0].strip()
     
     print(f'Enhanced Prompt: {generated_text}')
     return generated_text['generated_text']
