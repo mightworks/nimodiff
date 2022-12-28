@@ -56,7 +56,7 @@ def enhancePrompt(prefix_prompt):
         return prefix_prompt
     
     print(f'Enhanced Prompt: {generated_text}')
-    return generated_text['generated_text'].strip()
+    return generated_text['generated_text']
 
 class DummySafetyChecker:
     @staticmethod
