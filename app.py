@@ -27,8 +27,8 @@ import random
 nimo_tokenizer = AutoTokenizer.from_pretrained("Gustavosta/MagicPrompt-Stable-Diffusion")
 nimo_model = AutoModelForCausalLM.from_pretrained("Gustavosta/MagicPrompt-Stable-Diffusion")
 enhance_pl = pipeline("text-generation", model=nimo_model, tokenizer=nimo_tokenizer)
-# nimo_seed = random.randint(100, 1000000)
-# set_seed(nimo_seed)
+nimo_seed = random.randint(100, 1000000)
+set_seed(nimo_seed)
 
 RUNTIME_DOWNLOADS = os.getenv("RUNTIME_DOWNLOADS") == "1"
 USE_DREAMBOOTH = os.getenv("USE_DREAMBOOTH") == "1"
@@ -47,10 +47,15 @@ def enhancePrompt(prefix_prompt):
     prompt = re.sub(r"[,:\-–.!;?_()]", '', prompt)
     print(f"ORIGINAL: {prefix_prompt}")
     print(f"CLEAN: {prompt}")
-    generated_text = enhance_pl(prompt, max_length=80)[0]
+
+    try:
+        generated_text = enhance_pl(prompt, max_length=(len(prompt) + random.randint(60, 90)))[0]
+    except Exception as e:
+        print(f'Exception in enhance: {e}')
+        return prefix_prompt
     
     print(f'Enhanced Prompt: {generated_text}')
-    return generated_text['generated_text']
+    return generated_text['generated_text'].strip()
 
 class DummySafetyChecker:
     @staticmethod
