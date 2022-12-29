@@ -24,8 +24,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, set_seed
 import random
 
 # Setup NIMO Enhance
-nimo_tokenizer = AutoTokenizer.from_pretrained("Gustavosta/MagicPrompt-Stable-Diffusion")
-nimo_model = AutoModelForCausalLM.from_pretrained("Gustavosta/MagicPrompt-Stable-Diffusion")
+nimo_tokenizer = AutoTokenizer.from_pretrained("daspartho/prompt-extend")
+nimo_model = AutoModelForCausalLM.from_pretrained("daspartho/prompt-extend")
 enhance_pl = pipeline("text-generation", model=nimo_model, tokenizer=nimo_tokenizer)
 nimo_seed = random.randint(100, 1000000)
 set_seed(nimo_seed)
@@ -49,7 +49,7 @@ def enhancePrompt(prefix_prompt):
     print(f"CLEAN: {prompt}")
 
     try:
-        generated_text = enhance_pl(prompt, max_length=(len(prompt) + 30))[0]
+        generated_text = enhance_pl(prompt, max_length=(len(prompt) + 80))[0]
         print(generated_text)
     except Exception as e:
         print(f'Exception in enhance: {e}')
