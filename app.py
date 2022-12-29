@@ -49,7 +49,7 @@ def enhancePrompt(prefix_prompt):
     print(f"CLEAN: {prompt}")
 
     try:
-        generated_text = enhance_pl(prompt, max_length=(len(prompt) + 50))[0]
+        generated_text = enhance_pl(prompt, max_length=(len(prompt) + 30))[0]
         print(generated_text)
     except Exception as e:
         print(f'Exception in enhance: {e}')
