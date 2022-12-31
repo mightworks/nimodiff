@@ -22,13 +22,7 @@ from download import download_model
 import traceback
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, set_seed
 import random
-
-# Setup NIMO Enhance
-nimo_tokenizer = AutoTokenizer.from_pretrained("daspartho/prompt-extend")
-nimo_model = AutoModelForCausalLM.from_pretrained("daspartho/prompt-extend")
-enhance_pl = pipeline("text-generation", model=nimo_model, tokenizer=nimo_tokenizer)
-nimo_seed = random.randint(100, 1000000)
-set_seed(nimo_seed)
+import sys
 
 RUNTIME_DOWNLOADS = os.getenv("RUNTIME_DOWNLOADS") == "1"
 USE_DREAMBOOTH = os.getenv("USE_DREAMBOOTH") == "1"
@@ -42,27 +36,38 @@ HF_AUTH_TOKEN = os.getenv("HF_AUTH_TOKEN")
 torch.set_grad_enabled(False)
 
 def enhancePrompt(prefix_prompt):
+    global enhance_pl
+    global enhanced_cache
+
+    cache_enhanced_prompts = True # Set to 'False' to run for every variation
+
+    if cache_enhanced_prompts == True and enhanced_cache['prefix_prompt'] == prefix_prompt:
+        print('Using cached prompt..')
+        sys.stdout.flush()
+        return enhanced_cache['final_prompt']
+
+    # Clean up input prompt
     prompt = prefix_prompt.replace("\n", "").lower().capitalize()
     prompt = re.sub(r':\d+\.\d+', '', prompt)
     prompt = re.sub(r"[:\-–.!;?_()]", '', prompt)
-    print(f"ORIGINAL: {prefix_prompt}")
-    print(f"CLEAN: {prompt}")
 
     try:
-        generated_text = enhance_pl(prompt, max_length=(len(prompt) + 80))[0]
+        generated_text = enhance_pl(prompt, max_length=(len(prompt) + 10))[0]
         print(generated_text)
+        sys.stdout.flush()
     except Exception as e:
         print(f'Exception in enhance: {e}')
+        sys.stdout.flush()
         return prefix_prompt
     
     # Now re-append original prompt including weights
     snippet = generated_text['generated_text']
-    print(f'SNIPPET: {snippet}')
     final_prompt = prefix_prompt + ' ' + snippet[len(prompt):]
-    print(f'Enhanced Prompt: {final_prompt}')
-    return final_prompt
 
-    ### Only send new text so can append to original prompt
+    # Update cache
+    enhanced_cache = {'prefix_prompt': prefix_prompt, 'final_prompt': final_prompt}
+
+    return final_prompt
 
 class DummySafetyChecker:
     @staticmethod
@@ -74,6 +79,8 @@ class DummySafetyChecker:
 def init():
     global model  # needed for bananna optimizations
     global dummy_safety_checker
+    global enhance_pl
+    global enhanced_cache
 
     send(
         "init",
@@ -85,6 +92,11 @@ def init():
             "diffusers": __version__,
         },
     )
+
+    nimo_tokenizer = AutoTokenizer.from_pretrained("daspartho/prompt-extend")
+    nimo_model = AutoModelForCausalLM.from_pretrained("daspartho/prompt-extend")
+    enhance_pl = pipeline("text-generation", model=nimo_model, tokenizer=nimo_tokenizer)
+    enhanced_cache = {'prefix_prompt': '', 'final_prompt': ''}
 
     dummy_safety_checker = DummySafetyChecker()
 
